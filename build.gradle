@@ -24,6 +24,14 @@ ext {
 configure(allprojects) { project ->
 	apply plugin: "io.spring.dependency-management"
 
+	repositories {
+		maven {
+			url 'https://maven.aliyun.com/repository/public/'
+		}
+		mavenLocal()
+		mavenCentral()
+	}
+
 	dependencyManagement {
 		imports {
 			mavenBom "com.fasterxml.jackson:jackson-bom:2.10.4"
