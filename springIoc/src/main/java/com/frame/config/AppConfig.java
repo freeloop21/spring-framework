@@ -15,7 +15,7 @@ public class AppConfig {
 		return new TestBeanPostProcessor();
 	}*/
 
-	@Bean
+	//@Bean
 	public TestBeanFactoryPostProcessor testBeanFactoryPostProcessor(){
 		return new TestBeanFactoryPostProcessor();
 	}

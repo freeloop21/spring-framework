@@ -61,6 +61,14 @@ final class PostProcessorRegistrationDelegate {
 
 		if (beanFactory instanceof BeanDefinitionRegistry) {
 			BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
+			/**
+			 * 自己定义的BeanFactoryProcessor可以有两种方式:
+			 * 1、实现BeanFactoryProcessor接口
+			 * 2、实现BeanDefinitionRegistryPostProcessor
+			 * 因为BeanDefinitionRegistryPostProcessor实现了BeanFactoryProcessor,
+			 * 于是可以猜想实现bdrp和实现bfp是能够完成不同的功能。
+			 * 其实也可以理解，因为bdrp是子类，他肯定扩展了bfp的功能
+			 */
 			List<BeanFactoryPostProcessor> regularPostProcessors = new ArrayList<>();
 			List<BeanDefinitionRegistryPostProcessor> registryProcessors = new ArrayList<>();
 
@@ -93,6 +101,7 @@ final class PostProcessorRegistrationDelegate {
 			}
 			sortPostProcessors(currentRegistryProcessors, beanFactory);
 			registryProcessors.addAll(currentRegistryProcessors);
+
 			invokeBeanDefinitionRegistryPostProcessors(currentRegistryProcessors, registry);
 			currentRegistryProcessors.clear();
 

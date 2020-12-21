@@ -23,7 +23,7 @@ public class Test {
 	public static void main(String[] args) {
 		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
 		Dao dao1 = (TestDao) context.getBean("testDao");
-		Dao dao2 = (TestDao) context.getBean("testDao");
-		System.out.println(dao1 == dao2);
+		//Dao dao2 = (TestDao) context.getBean("testDao");
+		//System.out.println(dao1 == dao2);
 	}
 }
