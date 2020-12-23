@@ -122,11 +122,13 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * @param componentClasses one or more component classes &mdash; for example,
 	 * {@link Configuration @Configuration} classes
 	 */
-	//这里由于他有父类，故而会先调用父类的构造方法，然后才会调用自己的构造方法
+	//这里由于他有父类，故而会先调用父类的构造方法(GenericApplicationContext中实例化DefaultListableBeanFactory)，然后才会调用自己的构造方法
 	//在自己构造方法中初始一个读取器和扫描器
 	public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
 		this();
+		// tgx 准备DefaultListableBeanFactory,将beanDefinitionHolder,beanNameList等对象注册到DefaultListableBeanFactory
 		register(componentClasses);
+		// 准备好bean工厂，实例化对象
 		refresh();
 	}
 

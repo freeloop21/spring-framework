@@ -145,28 +145,51 @@ public abstract class AnnotationConfigUtils {
 	 * @return a Set of BeanDefinitionHolders, containing all bean definitions
 	 * that have actually been registered by this call
 	 */
+	/**
+	 1、添加AnnotationAwareOrderComparator类的对象，主要去排序
+	 2、ContextAnnotationAutowireCandidateResolver
+	 3、往BeanDefinitionMap注册一个ConfigurationClassPostProcessor?  org.springframework.context.annotation.internalConfigurationAnnotationProcessor
+	 why?因为需要在invokeBeanFactoryPostProcessors
+	 invokeBeanFactoryPostProcessors主要是在spring的beanFactory初始化的过程中去做一些事情，怎么来做这些事情呢？
+	 委托了多个实现了BeanDefinitionRegistryPostProcessor或者BeanFactoryProcessor接口的类来做这些事情,有自定义的也有spring内部的
+	 其中ConfigurationClassPostProcessor就是一个spring内部的BeanDefinitionRegistryPostProcessor
+	 因为如果你不添加这里就没有办法委托ConfigurationClassPostProcessor做一些功能
+	 到底哪些功能？参考下面的注释
+	 4、RequiredAnnotationBeanPostProcessor
+	 */
 	public static Set<BeanDefinitionHolder> registerAnnotationConfigProcessors(
 			BeanDefinitionRegistry registry, @Nullable Object source) {
 
 		DefaultListableBeanFactory beanFactory = unwrapDefaultListableBeanFactory(registry);
 		if (beanFactory != null) {
 			if (!(beanFactory.getDependencyComparator() instanceof AnnotationAwareOrderComparator)) {
+				// AnnotationAwareOrderComparator主要能解析@Order注解和@Priority
 				beanFactory.setDependencyComparator(AnnotationAwareOrderComparator.INSTANCE);
 			}
 			if (!(beanFactory.getAutowireCandidateResolver() instanceof ContextAnnotationAutowireCandidateResolver)) {
+				// ContextAnnotationAutowireCandidateResolver提供处理延迟加载的功能
 				beanFactory.setAutowireCandidateResolver(new ContextAnnotationAutowireCandidateResolver());
 			}
 		}
 
 		Set<BeanDefinitionHolder> beanDefs = new LinkedHashSet<>(8);
-
+		//BeanDefinitio的注册，这里很重要，需要理解注册每个bean的类型
 		if (!registry.containsBeanDefinition(CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME)) {
+			// 是一个BeanFactoryPostProcessor这个接口
+			/**
+			 why?因为需要在invokeBeanFactoryPostProcessors
+			 invokeBeanFactoryPostProcessors主要是在spring的beanFactory初始化的过程中去做一些事情，怎么来做这些事情呢？
+			 委托了多个实现了BeanDefinitionRegistryPostProcessor或者BeanFactoryProcessor接口的类来做这些事情,有自定义的也有spring内部的
+			 其中ConfigurationClassPostProcessor就是一个spring内部的BeanDefinitionRegistryPostProcessor
+			 因为如果你不添加这里就没有办法委托ConfigurationClassPostProcessor做一些功能
+			 */
 			RootBeanDefinition def = new RootBeanDefinition(ConfigurationClassPostProcessor.class);
 			def.setSource(source);
 			beanDefs.add(registerPostProcessor(registry, def, CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
 
 		if (!registry.containsBeanDefinition(AUTOWIRED_ANNOTATION_PROCESSOR_BEAN_NAME)) {
+			// 是一个BeanPostProcessor
 			RootBeanDefinition def = new RootBeanDefinition(AutowiredAnnotationBeanPostProcessor.class);
 			def.setSource(source);
 			beanDefs.add(registerPostProcessor(registry, def, AUTOWIRED_ANNOTATION_PROCESSOR_BEAN_NAME));
@@ -209,6 +232,7 @@ public abstract class AnnotationConfigUtils {
 		return beanDefs;
 	}
 
+	// 往BeanDefinitionMap注册
 	private static BeanDefinitionHolder registerPostProcessor(
 			BeanDefinitionRegistry registry, RootBeanDefinition definition, String beanName) {
 
@@ -223,6 +247,8 @@ public abstract class AnnotationConfigUtils {
 			return (DefaultListableBeanFactory) registry;
 		}
 		else if (registry instanceof GenericApplicationContext) {
+			//这里在AnnotationConfigApplicationContext初始化的时候this()方法中调用了父类GenericApplicationContext构造方法的时候new了一个DefaultListableBeanFactory对象
+			//下面代码返回这个对象
 			return ((GenericApplicationContext) registry).getDefaultListableBeanFactory();
 		}
 		else {
@@ -234,6 +260,7 @@ public abstract class AnnotationConfigUtils {
 		processCommonDefinitionAnnotations(abd, abd.getMetadata());
 	}
 
+	// 检查常用的注解
 	static void processCommonDefinitionAnnotations(AnnotatedBeanDefinition abd, AnnotatedTypeMetadata metadata) {
 		AnnotationAttributes lazy = attributesFor(metadata, Lazy.class);
 		if (lazy != null) {
