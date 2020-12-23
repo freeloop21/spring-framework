@@ -127,6 +127,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
 		this();
 		// tgx 准备DefaultListableBeanFactory,将beanDefinitionHolder,beanNameList等对象注册到DefaultListableBeanFactory
+		// 会在后面refresh()#prepareBeanFactory()中添加其他属性
 		register(componentClasses);
 		// 准备好bean工厂，实例化对象
 		refresh();
