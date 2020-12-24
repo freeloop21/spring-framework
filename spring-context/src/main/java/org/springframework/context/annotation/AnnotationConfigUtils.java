@@ -173,7 +173,7 @@ public abstract class AnnotationConfigUtils {
 		}
 
 		Set<BeanDefinitionHolder> beanDefs = new LinkedHashSet<>(8);
-		//BeanDefinitio的注册，这里很重要，需要理解注册每个bean的类型
+		//BeanDefinition的注册，这里很重要，需要理解注册每个bean的类型
 		if (!registry.containsBeanDefinition(CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			// 是一个BeanFactoryPostProcessor这个接口
 			/**
