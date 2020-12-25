@@ -72,9 +72,9 @@ class ComponentScanAnnotationParser {
 		this.registry = registry;
 	}
 
-
 	//解析扫描的一些基本信息，比如是否过滤，比如是否加入新的包。。。。
 	public Set<BeanDefinitionHolder> parse(AnnotationAttributes componentScan, final String declaringClass) {
+		// t 真正的扫描器
 		ClassPathBeanDefinitionScanner scanner = new ClassPathBeanDefinitionScanner(this.registry,
 				componentScan.getBoolean("useDefaultFilters"), this.environment, this.resourceLoader);
 

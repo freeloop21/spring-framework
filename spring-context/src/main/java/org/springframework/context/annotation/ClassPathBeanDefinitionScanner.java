@@ -284,7 +284,7 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 				String beanName = this.beanNameGenerator.generateBeanName(candidate, this.registry);
 				if (candidate instanceof AbstractBeanDefinition) {
 					//如果这个类是AbstractBeanDefinition的子类
-					//则为他设置默认值，比如lazy，init destory
+					//则为他设置默认值，比如lazy，init destroy
 					postProcessBeanDefinition((AbstractBeanDefinition) candidate, beanName);
 				}
 				if (candidate instanceof AnnotatedBeanDefinition) {

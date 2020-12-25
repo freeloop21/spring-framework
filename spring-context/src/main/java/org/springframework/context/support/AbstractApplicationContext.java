@@ -739,7 +739,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected void invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory beanFactory) {
 
-		// 1、getBeanFactoryPostProcessors()得到自己定义的（就是程序员自己写的，并且没有交给spring管理，就是没有加上@Component）
+		// 1、getBeanFactoryPostProcessors()得到自己定义的（就是程序员自己写的，并且没有交给spring管理，就是没有加上@Component,同时需要调用动调用AnnotationConfigApplicationContext.addBeanFactoryPostProcessor()）
 		// 2、得到spring内部自己维护的BeanDefinitionRegistryPostProcessor
 
 		// 如果加了getBeanFactoryPostProcessors()这个地方得不得，是spring自己扫描的

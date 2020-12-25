@@ -272,7 +272,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		// 定义一个list存放app 提供的bd（项目当中提供了@Compent）
 		List<BeanDefinitionHolder> configCandidates = new ArrayList<>();
 		// 获取容器中注册的所有bd名字
-		// 7个
+
 		String[] candidateNames = registry.getBeanDefinitionNames();
 
 		for (String beanName : candidateNames) {
@@ -316,6 +316,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		if (registry instanceof SingletonBeanRegistry) {
 			sbr = (SingletonBeanRegistry) registry;
 			if (!this.localBeanNameGeneratorSet) {//是否有自定义的
+				// getSingleton: 处理循环依赖
 				BeanNameGenerator generator = (BeanNameGenerator) sbr.getSingleton(
 						AnnotationConfigUtils.CONFIGURATION_BEAN_NAME_GENERATOR);
 				// SingletonBeanRegistry中有id为 org.springframework.context.annotation.internalConfigurationBeanNameGenerator
@@ -326,7 +327,6 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 				}
 			}
 		}
-
 		if (this.environment == null) {
 			this.environment = new StandardEnvironment();
 		}

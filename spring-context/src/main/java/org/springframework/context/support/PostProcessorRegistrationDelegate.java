@@ -67,10 +67,10 @@ final class PostProcessorRegistrationDelegate {
 
 			// 自定义的beanFactoryPostProcessors
 			/**
-			 * 自己定义的BeanFactoryProcessor可以有两种方式:
-			 * 1、实现BeanFactoryProcessor接口
+			 * 自己定义的BeanFactoryPostProcessor可以有两种方式:
+			 * 1、实现BeanFactoryPostProcessor接口
 			 * 2、实现BeanDefinitionRegistryPostProcessor
-			 * 因为BeanDefinitionRegistryPostProcessor实现了BeanFactoryProcessor,
+			 * 因为BeanDefinitionRegistryPostProcessor实现了BeanFactoryPostProcessor,
 			 * 于是可以猜想实现bdrp和实现bfp是能够完成不同的功能。
 			 * 其实也可以理解，因为bdrp是子类，他肯定扩展了bfp的功能
 			 */
@@ -106,7 +106,7 @@ final class PostProcessorRegistrationDelegate {
 			// 而这些功能都是需要在spring工厂初始化完成之前执行
 			// 要么在工厂最开始的时候、要么在工厂初始化之中，反正不能再之后
 			// 因为如果在之后就没有意义，因为那个时候已经需要使用工厂了
-			// 所以这里spring在一开始就注册了一个BeanFactoryPostProcessor，用来插手springfactory的实例化过程
+			// 所以这里spring在一开始就注册了一个BeanFactoryPostProcessor，用来插手springFactory的实例化过程
 			// 在这个地方断点可以知道这个类叫做ConfigurationClassPostProcessor
 			for (String ppName : postProcessorNames) {
 				if (beanFactory.isTypeMatch(ppName, PriorityOrdered.class)) {
@@ -317,7 +317,7 @@ final class PostProcessorRegistrationDelegate {
 	private static void invokeBeanDefinitionRegistryPostProcessors(
 			Collection<? extends BeanDefinitionRegistryPostProcessor> postProcessors, BeanDefinitionRegistry registry) {
 
-		// 因为只有一条数据
+		// 因为只有一条数据(ConfigurationClassPostProcessor：spring自身唯一初始化的BeanDefinitionRegistryPostProcessor)
 		for (BeanDefinitionRegistryPostProcessor postProcessor : postProcessors) {
 			// 调用扩展方法postProcessBeanDefinitionRegistry
 			postProcessor.postProcessBeanDefinitionRegistry(registry);
