@@ -235,7 +235,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 					"postProcessBeanFactory already called on this post-processor against " + registry);
 		}
 		this.registriesPostProcessed.add(registryId);
-		//拿出的所有bd，然后判断bd时候包含了@Configuration、@Import，@Compent。。。注解
+		//拿出的所有bd，然后判断bd是否包含了@Configuration、@Import，@Component。。。注解
 		processConfigBeanDefinitions(registry);
 	}
 
@@ -268,11 +268,12 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	 * {@link Configuration} classes.
 	 */
 	// 拿出所有bd，然后判断bd是否包含了@Configuration、@Import，@Compent。。。注解
+	///此时只有spring本身自带的BeanPostProcessor，BeanFactoryPostProcessor以及自己注册的配置类
 	public void processConfigBeanDefinitions(BeanDefinitionRegistry registry) {
 		// 定义一个list存放app 提供的bd（项目当中提供了@Compent）
+		///存放@Configuration注解的类
 		List<BeanDefinitionHolder> configCandidates = new ArrayList<>();
 		// 获取容器中注册的所有bd名字
-
 		String[] candidateNames = registry.getBeanDefinitionNames();
 
 		for (String beanName : candidateNames) {
@@ -284,12 +285,13 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 					logger.debug("Bean definition has already been processed as a configuration class: " + beanDef);
 				}
 			}
-			//判断是否是Configuration类，如果加了Configuration下面的这几个注解就不再判断了
+			// 判断是否是Configuration类，如果加了Configuration下面的这几个注解就不再判断了
 			// 还有  add(Component.class.getName());
 			//		candidateIndicators.add(ComponentScan.class.getName());
 			//		candidateIndicators.add(Import.class.getName());
 			//		candidateIndicators.add(ImportResource.class.getName());
-			//beanDef == appconfig
+
+			///无论是否加@Configuration注解，都会继续执行下面的逻辑，只是没有加入到configCandidates这个集合中
 			else if (ConfigurationClassUtils.checkConfigurationClassCandidate(beanDef, this.metadataReaderFactory)) {
 				configCandidates.add(new BeanDefinitionHolder(beanDef, beanName));
 			}
@@ -332,7 +334,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		}
 
 		// Parse each @Configuration class
-		// 实例化ConfigurationClassParser 为了解析各个配置类
+		// 实例化ConfigurationClassParser 为了解析各个有@Configuration注解的配置类
 		ConfigurationClassParser parser = new ConfigurationClassParser(
 				this.metadataReaderFactory, this.problemReporter, this.environment,
 				this.resourceLoader, this.componentScanBeanNameGenerator, registry);

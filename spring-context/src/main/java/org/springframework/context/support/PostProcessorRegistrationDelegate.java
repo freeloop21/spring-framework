@@ -62,8 +62,8 @@ final class PostProcessorRegistrationDelegate {
 		if (beanFactory instanceof BeanDefinitionRegistry) {
 			BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
 
-			List<BeanFactoryPostProcessor> regularPostProcessors = new ArrayList<>();
-			List<BeanDefinitionRegistryPostProcessor> registryProcessors = new ArrayList<>();
+			List<BeanFactoryPostProcessor> regularPostProcessors = new ArrayList<>();//存放程序员手动添加的BeanFactoryPostProcessor
+			List<BeanDefinitionRegistryPostProcessor> registryProcessors = new ArrayList<>();//存放程序员手动添加的BeanDefinitionRegistryPostProcessor
 
 			// 自定义的beanFactoryPostProcessors
 			/**
@@ -71,8 +71,8 @@ final class PostProcessorRegistrationDelegate {
 			 * 1、实现BeanFactoryPostProcessor接口
 			 * 2、实现BeanDefinitionRegistryPostProcessor
 			 * 因为BeanDefinitionRegistryPostProcessor实现了BeanFactoryPostProcessor,
-			 * 于是可以猜想实现bdrp和实现bfp是能够完成不同的功能。
-			 * 其实也可以理解，因为bdrp是子类，他肯定扩展了bfp的功能
+			 * 于是可以猜想实现BeanDefinitionRegistryPostProcessor和实现BeanFactoryPostProcessor是能够完成不同的功能。
+			 * 其实也可以理解，因为BeanDefinitionRegistryPostProcessor是子类，他肯定扩展了BeanFactoryPostProcessor的功能
 			 */
 			for (BeanFactoryPostProcessor postProcessor : beanFactoryPostProcessors) {
 				if (postProcessor instanceof BeanDefinitionRegistryPostProcessor) {
@@ -91,7 +91,7 @@ final class PostProcessorRegistrationDelegate {
 			// Separate between BeanDefinitionRegistryPostProcessors that implement
 			// PriorityOrdered, Ordered, and the rest.
 			// 这个currentRegistryProcessors 放的是spring内部自己实现了BeanDefinitionRegistryPostProcessor接口的对象
-			List<BeanDefinitionRegistryPostProcessor> currentRegistryProcessors = new ArrayList<>();
+			List<BeanDefinitionRegistryPostProcessor> currentRegistryProcessors = new ArrayList<>();//存放的是spring自己内部实现的BeanDefinitionRegistryPostProcessor
 
 			// First, invoke the BeanDefinitionRegistryPostProcessors that implement PriorityOrdered.
 			// BeanDefinitionRegistryPostProcessor 等于 BeanFactoryPostProcessor
@@ -116,7 +116,7 @@ final class PostProcessorRegistrationDelegate {
 			}
 			// 排序不重要，况且currentRegistryProcessors这里也只有一个数据
 			sortPostProcessors(currentRegistryProcessors, beanFactory);
-			// 合并list，不重要(为什么要合并，因为还有自己的)
+			// 合并list(将spring自己内部实现的和程序员实现的BeanDefinitionRegistryPostProcessor合并起来统一处理)
 			registryProcessors.addAll(currentRegistryProcessors);
 
 			// 最重要。注意这里是方法调用

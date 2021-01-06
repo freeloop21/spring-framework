@@ -90,6 +90,7 @@ abstract class ConfigurationClassUtils {
 		}
 
 		AnnotationMetadata metadata;
+		///判断bean是否加了注解,spring以此来决定如何获取该类的信息
 		if (beanDef instanceof AnnotatedBeanDefinition &&
 				className.equals(((AnnotatedBeanDefinition) beanDef).getMetadata().getClassName())) {
 			// Can reuse the pre-parsed metadata from the given BeanDefinition...
@@ -123,12 +124,13 @@ abstract class ConfigurationClassUtils {
 			}
 		}
 
-		// 判断当前这个bd中存在的类是不是加了@Configruation注解
-		// 如果存在则spring认为他是一个全注解的类
 		Map<String, Object> config = metadata.getAnnotationAttributes(Configuration.class.getName());
+		// 判断当前这个bd中存在的类是不是加了@Configruation注解
+		// 如果存在Configuration注解,则为beanDefinition设置configurationClass为full。除Configuration之外其他注解会在处理该类的时候再去处理
 		if (config != null && !Boolean.FALSE.equals(config.get("proxyBeanMethods"))) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);
 		}
+		///加了注解但不是@Configuration注解
 		else if (config != null || isConfigurationCandidate(metadata)) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_LITE);
 		}
@@ -159,6 +161,10 @@ abstract class ConfigurationClassUtils {
 		}
 
 		// Any of the typical annotations found?
+		///Component.class
+		///ComponentScan.class
+		///Import.class
+		///ImportResource.class
 		for (String indicator : candidateIndicators) {
 			if (metadata.isAnnotated(indicator)) {
 				return true;

@@ -331,12 +331,12 @@ public class AnnotatedBeanDefinitionReader {
 		BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(abd, beanName);
 		/**
 		 * ScopedProxyMode 这个知识点比较复杂，需要结合web去理解
-		 * 可以暂时放一下，等到springmvc的时候再看
+		 * 可以暂时放一下，等到springMVC的时候再看
 		 */
 		definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
 		/**
-		 * 把上述的这个数据结构注册给registry，registy就是AnnotatonConfigApplicationContext
-		 * AnnotatonConfigApplicationContext在初始化的時候通過調用父類(GenericApplicationContext)的構造方法實例化了一个DefaultListableBeanFactory
+		 * 把上述的这个数据结构注册给registry，registry就是AnnotationConfigApplicationContext
+		 * AnnotationConfigApplicationContext在初始化的時候通過調用父類(GenericApplicationContext)的構造方法實例化了一个DefaultListableBeanFactory
 		 * registerBeanDefinition里面就是把definitionHolder这个数据结构包含的信息注册到DefaultListableBeanFactory这个工厂
 		 */
 		BeanDefinitionReaderUtils.registerBeanDefinition(definitionHolder, this.registry);

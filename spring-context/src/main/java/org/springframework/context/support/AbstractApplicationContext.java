@@ -667,12 +667,13 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * such as the context's ClassLoader and post-processors.
 	 * @param beanFactory the BeanFactory to configure
 	 */
-	protected void prepareBeanFactory(ConfigurableListableBeanFactory beanFactory) {
+	protected void  prepareBeanFactory(ConfigurableListableBeanFactory beanFactory) {
 		// Tell the internal bean factory to use the context's class loader etc.
 		beanFactory.setBeanClassLoader(getClassLoader());
-		// bean表达式解释器  能够获取bean当中的属性在前台页面
+		// bean表达式解释器  能够在前台页面获取bean当中的属性
 		beanFactory.setBeanExpressionResolver(new StandardBeanExpressionResolver(beanFactory.getBeanClassLoader()));
-		// 对象与string类型的转换   <property red="dao">
+		// 对象与string类型的转换
+		// <property ref="dao"> 将dao字符串转换为一个对象
 		beanFactory.addPropertyEditorRegistrar(new ResourceEditorRegistrar(this, getEnvironment()));
 
 		// Configure the bean factory with context callbacks.
@@ -692,6 +693,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		// BeanFactory interface not registered as resolvable type in a plain factory.
 		// MessageSource registered (and found for autowiring) as a bean.
+		///依赖替换
 		beanFactory.registerResolvableDependency(BeanFactory.class, beanFactory);
 		beanFactory.registerResolvableDependency(ResourceLoader.class, this);
 		beanFactory.registerResolvableDependency(ApplicationEventPublisher.class, this);
@@ -709,7 +711,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		// Register default environment beans.
 		// 意思是如果自定义的Bean中没有名为"systemProperties"和"systemEnvironment"的Bean，
-		// 则注册两个Bean，Key为"systemProperties"和"systemEnvironment"，Value为Map，
+		// 则spring自己会自动注册两个Bean，Key为"systemProperties"和"systemEnvironment"，Value为Map，
 		// 这两个Bean就是一些系统配置和系统环境信息
 		if (!beanFactory.containsLocalBean(ENVIRONMENT_BEAN_NAME)) {
 			beanFactory.registerSingleton(ENVIRONMENT_BEAN_NAME, getEnvironment());
@@ -739,13 +741,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected void invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory beanFactory) {
 
-		// 1、getBeanFactoryPostProcessors()得到自己定义的（就是程序员自己写的，并且没有交给spring管理，就是没有加上@Component,同时需要调用动调用AnnotationConfigApplicationContext.addBeanFactoryPostProcessor()）
-		// 2、得到spring内部自己维护的BeanDefinitionRegistryPostProcessor
-
-		// 如果加了getBeanFactoryPostProcessors()这个地方得不得，是spring自己扫描的
+		// 需要注意getBeanFactoryPostProcessors()是获取手动addBeanFactoryPostProcessor(自定义)的（自定义并不仅仅是程序员自己写的，自己写的可以加component也可以不加;如果加了,getBeanFactoryPostProcessors()得不到）
 		// 为什么得不到？因为getBeanFactoryPostProcessors()这个方法是直接获取一个list，
-		// 这个list是在AnnotationConfigApplicationContext被定义
-		// 所谓的自定义的就是你手动调用AnnotationConfigApplicationContext.addBeanFactoryPostProcessor();
+		// 这个list是在AnnotationConfigApplicationContext被定义；通过手动调用AnnotationConfigApplicationContext.addBeanFactoryPostProcessor()可以添加我们自定义的
 		PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors());
 
 		// Detect a LoadTimeWeaver and prepare for weaving, if found in the meantime

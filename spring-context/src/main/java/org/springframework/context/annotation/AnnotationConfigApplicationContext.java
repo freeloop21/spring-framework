@@ -101,6 +101,9 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 		//但是实际上我们扫描包工作不是scanner这个对象来完成的
 		//是spring自己new的一个ClassPathBeanDefinitionScanner
 		//这里的scanner仅仅是为了程序员能够在外部调用AnnotationConfigApplicationContext对象的scan方法
+
+		/// 某种意义上没有什么作用,真正的扫描（componentScan）是上面AnnotatedBeanDefinitionReader做的，在该类中重新new了一个ClassPathBeanDefinitionScanner来扫描
+		/// 当调用AnnotationConfigApplicationContext.scan()时才用到了这个类
 		this.scanner = new ClassPathBeanDefinitionScanner(this);
 	}
 
@@ -192,6 +195,15 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	//---------------------------------------------------------------------
 
 	/**
+	 * Register one or more component classes to be processed.
+	 * <p>Note that {@link #refresh()} must be called in order for the context
+	 * to fully process the new classes.
+	 * @param componentClasses one or more component classes &mdash; for example,
+	 * {@link Configuration @Configuration} classes
+	 * @see #scan(String...)
+	 * @see #refresh()
+	 *
+	 *
 	 * 注册单个bean给容器
 	 * 比如有新加的类可以用这个方法
 	 * 但是注册注册之后需要手动调用refresh方法去触发容器解析注解
@@ -200,13 +212,6 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * 他可以注册一个配置类
 	 * 他还可以单独注册一个bean
 	 *
-	 * Register one or more component classes to be processed.
-	 * <p>Note that {@link #refresh()} must be called in order for the context
-	 * to fully process the new classes.
-	 * @param componentClasses one or more component classes &mdash; for example,
-	 * {@link Configuration @Configuration} classes
-	 * @see #scan(String...)
-	 * @see #refresh()
 	 */
 	@Override
 	public void register(Class<?>... componentClasses) {

@@ -225,7 +225,7 @@ class ConfigurationClassParser {
 		return this.configurationClasses.keySet();
 	}
 
-
+	///处理的是@Configuration对象
 	protected void processConfigurationClass(ConfigurationClass configClass, Predicate<String> filter) throws IOException {
 		if (this.conditionEvaluator.shouldSkip(configClass.getMetadata(), ConfigurationPhase.PARSE_CONFIGURATION)) {
 			return;
@@ -253,12 +253,14 @@ class ConfigurationClassParser {
 		// Recursively process the configuration class and its superclass hierarchy.
 		SourceClass sourceClass = asSourceClass(configClass, filter);
 		do {
-			// 1、处理内部类 一般不会写内部类
+			// 1. 处理内部类 一般不会写内部类
+			///2. 解析扫描包
+			///3. 处理@Import imports 3种情况
 			sourceClass = doProcessConfigurationClass(configClass, sourceClass, filter);
 		}
 		while (sourceClass != null);
 
-		//一个map，用来存放扫描出来的bean（注意这里的bean不是对象，仅仅bean的信息，因为还没到实例化这一步）
+		// 一个map，用来存放扫描出来的bean（注意这里的bean不是对象，仅仅bean的信息，因为还没到实例化这一步）
 		this.configurationClasses.put(configClass, configClass);
 	}
 
@@ -586,6 +588,17 @@ class ConfigurationClassParser {
 		}
 	}
 
+	/**
+	 * ImportSelector
+	 * ImportBeanDefinitionRegistrar
+	 * normal普通类
+	 */
+	/**
+	 * 往spring中注册bean的3种方式：
+	 * 1. register()   map.put()  				没办法参与类变bd的过程
+	 * 2. scan()								没办法参与类变bd的过程
+	 * 3. 实现ImportBeanDefinitionRegistrar 		可以参与类变bd的过程
+	 */
 	private void processImports(ConfigurationClass configClass, SourceClass currentSourceClass,
 			Collection<SourceClass> importCandidates, Predicate<String> exclusionFilter,
 			boolean checkForCircularImports) {
