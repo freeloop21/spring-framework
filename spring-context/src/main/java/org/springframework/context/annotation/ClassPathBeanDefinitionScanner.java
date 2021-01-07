@@ -285,11 +285,11 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 				String beanName = this.beanNameGenerator.generateBeanName(candidate, this.registry);
 				if (candidate instanceof AbstractBeanDefinition) {
 					// 如果这个类是AbstractBeanDefinition的子类
-					// 则为他设置默认值，比如lazy，init destroy
+					///则为他设置默认值(spring自身设置的)，比如lazy，init，destroy
 					postProcessBeanDefinition((AbstractBeanDefinition) candidate, beanName);
 				}
 				if (candidate instanceof AnnotatedBeanDefinition) {
-					// 检查并且处理常用的注解
+					///检查并且处理常用的注解(上面设置的是默认值，此处才设置配置的值)
 					// 这里的处理主要是指把常用注解的值设置到AnnotatedBeanDefinition当中
 					// 当前前提是这个类必须是AnnotatedBeanDefinition类型的，说白了就是加了注解的类
 					AnnotationConfigUtils.processCommonDefinitionAnnotations((AnnotatedBeanDefinition) candidate);
@@ -299,7 +299,7 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 					definitionHolder =
 							AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
 					beanDefinitions.add(definitionHolder);
-					// 加入到map当中
+					///将BeanDefinition放入map当中
 					registerBeanDefinition(definitionHolder, this.registry);
 				}
 			}

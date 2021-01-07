@@ -267,7 +267,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	 * Build and validate a configuration model based on the registry of
 	 * {@link Configuration} classes.
 	 */
-	// 拿出所有bd，然后判断bd是否包含了@Configuration、@Import，@Compent。。。注解
+	// 拿出所有bd，然后判断bd是否包含了@Configuration、@Import，@Component。。。注解
 	///此时只有spring本身自带的BeanPostProcessor，BeanFactoryPostProcessor以及自己注册的配置类
 	public void processConfigBeanDefinitions(BeanDefinitionRegistry registry) {
 		// 定义一个list存放app 提供的bd（项目当中提供了@Compent）
@@ -292,6 +292,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			//		candidateIndicators.add(ImportResource.class.getName());
 
 			///无论是否加@Configuration注解，都会继续执行下面的逻辑，只是没有加入到configCandidates这个集合中
+			///checkConfigurationClassCandidate()：将@Configuration的注解类的
 			else if (ConfigurationClassUtils.checkConfigurationClassCandidate(beanDef, this.metadataReaderFactory)) {
 				configCandidates.add(new BeanDefinitionHolder(beanDef, beanName));
 			}

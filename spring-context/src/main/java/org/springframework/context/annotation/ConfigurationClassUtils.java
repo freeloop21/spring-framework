@@ -130,7 +130,8 @@ abstract class ConfigurationClassUtils {
 		if (config != null && !Boolean.FALSE.equals(config.get("proxyBeanMethods"))) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);
 		}
-		///加了注解但不是@Configuration注解
+		// 如果不存在Configuration注解,spring则认为是一个部分注解类
+		///配置类加了注解但不是@Configuration注解类对应的beanDefinition的configurationClass属性设置为full，否则设置为lite
 		else if (config != null || isConfigurationCandidate(metadata)) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_LITE);
 		}

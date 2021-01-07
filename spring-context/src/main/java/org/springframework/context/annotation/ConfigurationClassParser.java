@@ -193,6 +193,7 @@ class ConfigurationClassParser {
 			}
 		}
 
+		///
 		this.deferredImportSelectorHandler.process();
 	}
 
@@ -305,7 +306,7 @@ class ConfigurationClassParser {
 				// The config class is annotated with @ComponentScan -> perform the scan immediately
 				// 真正解析扫描包
 
-				// 扫描普通类=componentScan=com
+				// 扫描普通类 : componentScan=com
 				// 这里扫描出来所有@Component
 				// 并且把扫描的出来的普通bean放到map当中
 				Set<BeanDefinitionHolder> scannedBeanDefinitions =
@@ -614,6 +615,7 @@ class ConfigurationClassParser {
 			this.importStack.push(configClass);
 			try {
 				for (SourceClass candidate : importCandidates) {
+					///ImportSelector
 					if (candidate.isAssignable(ImportSelector.class)) {
 						// Candidate class is an ImportSelector -> delegate to it to determine imports
 						Class<?> candidateClass = candidate.loadClass();
@@ -636,6 +638,7 @@ class ConfigurationClassParser {
 							processImports(configClass, currentSourceClass, importSourceClasses, exclusionFilter, false);
 						}
 					}
+					///ImportBeanDefinitionRegistrar
 					else if (candidate.isAssignable(ImportBeanDefinitionRegistrar.class)) {
 						// Candidate class is an ImportBeanDefinitionRegistrar ->
 						// delegate to it to register additional bean definitions
