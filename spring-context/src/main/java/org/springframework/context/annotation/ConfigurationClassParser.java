@@ -332,20 +332,20 @@ class ConfigurationClassParser {
 		 */
 		// 处理@Import imports 3种情况
 		// ImportSelector
-		// 普通类
+		// 普通类 @Component
 		// ImportBeanDefinitionRegistrar
 		// 这里和内部递归调用时候的情况不同
 		/**
 		 * 这里处理的import是需要判断我们的类当中是否有@Import注解
 		 * 如果有则把@Import当中的值拿出来，是一个类
 		 * 比如@Import(xxxxx.class)，那么这里便把xxxxx传进去进行解析
-		 * 在解析的过程中如果发觉是一个importSelector那么就回调selector的方法
+		 * 在解析的过程中如果发觉是一个importSelector那么就会去回调selector的方法
 		 * 返回一个字符串（类名），通过这个字符串得到一个类
-		 * 继而在递归调用本方法来处理这个类
+		 * 继而再递归调用本方法来处理这个类
 		 *
 		 * 判断一组类是不是imports（3种import）
 		 */
-
+		///getImports()方法可以拿到所有加了@Import注解的类
 		processImports(configClass, sourceClass, getImports(sourceClass), filter, true);
 
 		// Process any @ImportResource annotations
@@ -590,13 +590,14 @@ class ConfigurationClassParser {
 	}
 
 	/**
-	 * ImportSelector
-	 * ImportBeanDefinitionRegistrar
-	 * normal普通类
+	 * 处理这三种import的方式各不相同：
+	 * ImportSelector                   先放到configurationClasses这个map中             然后调用loadBeanDefinition()注册（加入到最终的BeanDefinition的map中）
+	 * ImportBeanDefinitionRegistrar	先放到importBeanDefinitionRegistrars这个map中   然后注册
+	 * import普通类 @Component			先放到configurationClasses这个map中             然后注册（会先判断是否已经注册）
 	 */
 	/**
 	 * 往spring中注册bean的3种方式：
-	 * 1. register()   map.put()  				没办法参与类变bd的过程
+	 * 1. register()       map.put()  			没办法参与类变bd的过程
 	 * 2. scan()								没办法参与类变bd的过程
 	 * 3. 实现ImportBeanDefinitionRegistrar 		可以参与类变bd的过程
 	 */
@@ -631,10 +632,15 @@ class ConfigurationClassParser {
 						}
 						else {
 							// 回调
+							///将ImportSelector中的字符串都拿出来,这些字符串是类名
 							String[] importClassNames = selector.selectImports(currentSourceClass.getMetadata());
+							///将取出来的类名通过Class.forName()将其转换为类对象
 							Collection<SourceClass> importSourceClasses = asSourceClasses(importClassNames, exclusionFilter);
 							// 递归，这里第二次调用processImports
 							// 如果是一个普通类，会进else
+
+							///这里的importSourceClasses是指现在循环的当前类,判断这个类是否还有@Import注解
+							///而外层调用的processImports(configClass, sourceClass, getImports(sourceClass), filter, true)中的getImports(sourceClass)代表获取所有的@Import的注解
 							processImports(configClass, currentSourceClass, importSourceClasses, exclusionFilter, false);
 						}
 					}
@@ -660,6 +666,7 @@ class ConfigurationClassParser {
 						// 如果是importSelector，会先放到configurationClasses后面进行出来注册
 						this.importStack.registerImport(
 								currentSourceClass.getMetadata(), candidate.getMetadata().getClassName());
+						///最后将扫描出来的bean放入到一个map中
 						processConfigurationClass(candidate.asConfigClass(configClass), exclusionFilter);
 					}
 				}

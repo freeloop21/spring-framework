@@ -123,6 +123,7 @@ final class PostProcessorRegistrationDelegate {
 
 			// 调用这个方法循环所有的BeanDefinitionRegistryPostProcessor
 			// 该方法内部postProcessor.postProcessBeanDefinitionRegistry
+			///只是所有的BeanDefinitionRegistryPostProcessor(spring内置以及自定义的)
 			invokeBeanDefinitionRegistryPostProcessors(currentRegistryProcessors, registry);
 			// 执行完成了所有BeanDefinitionRegistryPostProcessor
 			// 这个list只是一个临时变量，故而要清除
@@ -164,6 +165,7 @@ final class PostProcessorRegistrationDelegate {
 			// 前面执行的BeanFactoryPostProcessor的子类BeanDefinitionRegistryPostProcessor的回调
 			// 这是执行的是BeanFactoryPostProcessor    postProcessBeanFactory
 			// ConfigurationClassPostProcessor
+			///先处理完子类然后再处理父类
 			invokeBeanFactoryPostProcessors(registryProcessors, beanFactory);
 			// 自定义BeanFactoryPostProcessor
 			invokeBeanFactoryPostProcessors(regularPostProcessors, beanFactory);
