@@ -257,9 +257,9 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			processConfigBeanDefinitions((BeanDefinitionRegistry) beanFactory);
 		}
 
-		// 给配置类产生cglib代理
+		// 给配置类产生cglib代理:cglib是通过字节的而不是通过反射
 		// 为什么需要产生cglib代理？
-		///spring会为全配置类(配置@Configuration)产生cglib动态代理
+		///spring会为全配置类(配置@Configuration)产生cglib动态代理,为全配置类增加一个BeanFactory属性,从而可以管理该配置类中bean的作用域
 		/*功能原理：当配置类有@Configuration则spring会使用cglib为该类生成代理类，同时会实现BeanFactoryAware接口；
 				   然后BeanMethodInterceptor过滤器会判断该类如果是FactoryBean，因其getObject()会返回一个真实对象，为了保证单例则会为其再生层一层代理类
 				   自动注入一个BeanFactory
@@ -372,6 +372,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			 * 因为ImportBeanDefinitionRegistrar在扫描出来的时候已经被添加到一个list当中去了
 			 */
 			// bd 到 map 除却普通
+			///此时才完成bd的注册: 所有的bd放到map当中
 			this.reader.loadBeanDefinitions(configClasses);
 			alreadyParsed.addAll(configClasses);
 

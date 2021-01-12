@@ -74,6 +74,8 @@ class ConfigurationClassEnhancer {
 
 	// The callbacks to use. Note that these callbacks must be stateless.
 	private static final Callback[] CALLBACKS = new Callback[] {
+			///增强方法，主要控制bean的作用域
+			///即不让它每一次都去new创建新的对象
 			new BeanMethodInterceptor(),
 			new BeanFactoryAwareMethodInterceptor(),
 			NoOp.INSTANCE
@@ -95,6 +97,7 @@ class ConfigurationClassEnhancer {
 	 * @return the enhanced subclass
 	 */
 	public Class<?> enhance(Class<?> configClass, @Nullable ClassLoader classLoader) {
+		///判断是否被代理过，如果代理过就会实现EnhancedConfiguration这个接口(BeanFactoryAware)
 		if (EnhancedConfiguration.class.isAssignableFrom(configClass)) {
 			if (logger.isDebugEnabled()) {
 				logger.debug(String.format("Ignoring request to enhance %s as it has " +
@@ -106,7 +109,7 @@ class ConfigurationClassEnhancer {
 			}
 			return configClass;
 		}
-		// 没有被代理cglib代理
+		// 没有被代理则进行cglib代理
 		///newEnhancer:生成代理对象，注意代理对象最终实现了BeanFactoryAware
 		Class<?> enhancedClass = createClass(newEnhancer(configClass, classLoader));
 		if (logger.isTraceEnabled()) {
@@ -342,7 +345,8 @@ class ConfigurationClassEnhancer {
 
 			// 一个非常牛逼的判断
 			// 判断到底是new 还是get
-			// 判断执行的方法和调用方法是不是同一个方法
+			// isCurrentlyInvokedFactoryMethod：判断执行的方法和调用方法是不是同一个方法
+			///if(true),则会调用父类（不能直接new）; if(false),则会调用$$BeanFactory.getBean
 			if (isCurrentlyInvokedFactoryMethod(beanMethod)) {
 				// The factory is calling the bean method in order to instantiate and register the bean
 				// (i.e. via a getBean() call) -> invoke the super implementation of the method to actually
