@@ -260,6 +260,10 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		// 给配置类产生cglib代理
 		// 为什么需要产生cglib代理？
 		///spring会为全配置类(配置@Configuration)产生cglib动态代理
+		/*功能原理：当配置类有@Configuration则spring会使用cglib为该类生成代理类，同时会实现BeanFactoryAware接口；
+				   然后BeanMethodInterceptor过滤器会判断该类如果是FactoryBean，因其getObject()会返回一个真实对象，为了保证单例则会为其再生层一层代理类
+				   自动注入一个BeanFactory
+		*/
 		enhanceConfigurationClasses(beanFactory);
 		beanFactory.addBeanPostProcessor(new ImportAwareBeanPostProcessor(beanFactory));
 	}
@@ -464,6 +468,8 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			// Set enhanced subclass of the user-specified bean class
 			Class<?> configClass = beanDef.getBeanClass();
 			// 完成对全注解类的cglib代理
+			///这里为什么不用动态代理？  因为动态代理基于接口，而自己创建的配置类不一定实现了接口
+			///生成代理对象，注意代理对象最终实现了BeanFactoryAware
 			Class<?> enhancedClass = enhancer.enhance(configClass, this.beanClassLoader);
 			if (configClass != enhancedClass) {
 				if (logger.isTraceEnabled()) {

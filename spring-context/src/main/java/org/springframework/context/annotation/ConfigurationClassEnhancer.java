@@ -106,6 +106,8 @@ class ConfigurationClassEnhancer {
 			}
 			return configClass;
 		}
+		// 没有被代理cglib代理
+		///newEnhancer:生成代理对象，注意代理对象最终实现了BeanFactoryAware
 		Class<?> enhancedClass = createClass(newEnhancer(configClass, classLoader));
 		if (logger.isTraceEnabled()) {
 			logger.trace(String.format("Successfully enhanced %s; enhanced class name is: %s",
@@ -119,11 +121,27 @@ class ConfigurationClassEnhancer {
 	 */
 	private Enhancer newEnhancer(Class<?> configSuperClass, @Nullable ClassLoader classLoader) {
 		Enhancer enhancer = new Enhancer();
+		// 增强父类，地球人都知道cglib是基于继承类的
 		enhancer.setSuperclass(configSuperClass);
+		// 增强接口，为什么要增强接口?
+		// 便于判断，表示一个类以及被增强了
+		///EnhancedConfiguration实现了BeanFactoryAware
+		///因为加了@Configuration的配置类返回的是cglib生成的代理对象，因此为了从spring中获取原对象需要实现BeanFactoryAware以此调用factory.getBean()
 		enhancer.setInterfaces(new Class<?>[] {EnhancedConfiguration.class});
+		// 不继承Factory接口
 		enhancer.setUseFactory(false);
 		enhancer.setNamingPolicy(SpringNamingPolicy.INSTANCE);
+		// BeanFactoryAwareGeneratorStrategy是一个生成策略
+		// 主要为生成的CGLIB类中添加成员变量$$beanFactory
+		// 同时基于接口EnhancedConfiguration的父接口BeanFactoryAware中的setBeanFactory方法，
+		// 设置此变量的值为当前Context中的beanFactory,这样一来我们这个cglib代理的对象就有了beanFactory
+		// 有了factory就能获得对象，而不用去通过方法获得对象了，因为通过方法获得对象不能控制其过程
+		// 该BeanFactory的作用是在this调用时拦截该调用，并直接在beanFactory中获得目标bean
 		enhancer.setStrategy(new BeanFactoryAwareGeneratorStrategy(classLoader));
+		// 过滤方法，不能每次都去new
+		///对目标方法进行拦截
+
+		///***************  BeanMethodInterceptor(),  BeanFactoryAwareMethodInterceptor()  ******************
 		enhancer.setCallbackFilter(CALLBACK_FILTER);
 		enhancer.setCallbackTypes(CALLBACK_FILTER.getCallbackTypes());
 		return enhancer;
@@ -270,6 +288,8 @@ class ConfigurationClassEnhancer {
 	 * handling of bean semantics such as scoping and AOP proxying.
 	 * @see Bean
 	 * @see ConfigurationClassEnhancer
+	 *
+	 * 用于拦截@Bean方法的调用，并直接从BeanFactory中获取目标bean，而不是通过执行方法。
 	 */
 	private static class BeanMethodInterceptor implements MethodInterceptor, ConditionalCallback {
 
@@ -284,6 +304,8 @@ class ConfigurationClassEnhancer {
 		public Object intercept(Object enhancedConfigInstance, Method beanMethod, Object[] beanMethodArgs,
 					MethodProxy cglibMethodProxy) throws Throwable {
 
+			// enhancedConfigInstance 代理
+			// 通过enhancedConfigInstance中cglib生成的成员变量$$beanFactory获得beanFactory。
 			ConfigurableBeanFactory beanFactory = getBeanFactory(enhancedConfigInstance);
 			String beanName = BeanAnnotationHelper.determineBeanNameFor(beanMethod);
 
@@ -302,6 +324,9 @@ class ConfigurationClassEnhancer {
 			// proxy that intercepts calls to getObject() and returns any cached bean instance.
 			// This ensures that the semantics of calling a FactoryBean from within @Bean methods
 			// is the same as that of referring to a FactoryBean within XML. See SPR-6602.
+			///判断配置类中返回的类（@Bean）是不是一个FactoryBean
+			///通过beanFactory.getBean(&beanName),如果能获得bean对象则说明是FactoryBean
+			///而FactoryBean会通过内部的getObject()获得对象(真实对象，本身此factoryBean对象在spring容器中的名字是&factoryBeanName)，为了返回单例则还需要再加一层单利
 			if (factoryContainsBean(beanFactory, BeanFactory.FACTORY_BEAN_PREFIX + beanName) &&
 					factoryContainsBean(beanFactory, beanName)) {
 				Object factoryBean = beanFactory.getBean(BeanFactory.FACTORY_BEAN_PREFIX + beanName);
@@ -310,10 +335,14 @@ class ConfigurationClassEnhancer {
 				}
 				else {
 					// It is a candidate FactoryBean - go ahead with enhancement
+					///又创建了一层代理
 					return enhanceFactoryBean(factoryBean, beanMethod.getReturnType(), beanFactory, beanName);
 				}
 			}
 
+			// 一个非常牛逼的判断
+			// 判断到底是new 还是get
+			// 判断执行的方法和调用方法是不是同一个方法
 			if (isCurrentlyInvokedFactoryMethod(beanMethod)) {
 				// The factory is calling the bean method in order to instantiate and register the bean
 				// (i.e. via a getBean() call) -> invoke the super implementation of the method to actually
@@ -341,6 +370,8 @@ class ConfigurationClassEnhancer {
 			// the bean method, direct or indirect. The bean may have already been marked
 			// as 'in creation' in certain autowiring scenarios; if so, temporarily set
 			// the in-creation status to false in order to avoid an exception.
+
+			// 判断他是否正在创建
 			boolean alreadyInCreation = beanFactory.isCurrentlyInCreation(beanName);
 			try {
 				if (alreadyInCreation) {
@@ -358,6 +389,8 @@ class ConfigurationClassEnhancer {
 						}
 					}
 				}
+				// beanFactory.getBean
+				// 这个方法spring就写的非常牛逼，在bean实例化的章节会重点讲
 				Object beanInstance = (useArgs ? beanFactory.getBean(beanName, beanMethodArgs) :
 						beanFactory.getBean(beanName));
 				if (!ClassUtils.isAssignableValue(beanMethod.getReturnType(), beanInstance)) {
