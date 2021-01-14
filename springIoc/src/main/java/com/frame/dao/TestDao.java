@@ -1,8 +1,9 @@
 package com.frame.dao;
 
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
-@Repository("testDao")
+@Component("testDao")
 public class TestDao implements Dao{
 
 	/*public TestDao(){

@@ -243,12 +243,41 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			String name, @Nullable Class<T> requiredType, @Nullable Object[] args, boolean typeCheckOnly)
 			throws BeansException {
 
-		String beanName = transformedBeanName(name);
+		/**
+		 * 通过 name 获取 beanName。这里不使用 name 直接作为 beanName 有两个原因
+		 * 1、name 可能会以 & 字符开头，表明调用者想获取 FactoryBean 本身，而非 FactoryBean
+		 *   实现类所创建的 bean。在 BeanFactory 中，FactoryBean 的实现类和其他的 bean 存储
+		 *   方式是一致的，即 <beanName, bean>，beanName 中是没有 & 这个字符的。所以我们需要
+		 *   将 name 的首字符 & 移除，这样才能从缓存里取到 FactoryBean 实例。
+		 * 2、还是别名的问题，转换需要
+		 * &beanName
+		 */
+		String beanName = transformedBeanName(name);// 关于bean name的字符操作
 		Object bean;
 
 		// Eagerly check singleton cache for manually registered singletons.
+		/**
+		 * 这个方法在初始化的时候会调用，在getBean的时候也会调用
+		 * 为什么需要这么做呢？
+		 * 也就是说spring在初始化的时候先获取这个对象
+		 * 判断这个对象是否被实例化好了(普通情况下绝对为空====有一种情况可能不为空)
+		 * 从spring的bean容器中获取一个bean，由于spring中bean容器是一个map（singletonObjects）
+		 * 所以你可以理解getSingleton(beanName)等于beanMap.get(beanName)
+		 * 由于方法会在spring环境初始化的时候（就是对象被创建的时候调用一次）调用一次
+		 * 还会在getBean的时候调用一次
+		 * 所以再调试的时候需要特别注意，不能直接断点在这里，
+		 * 需要先进入到annotationConfigApplicationContext.getBean(IndexDao.class)
+		 * 之后再来断点，这样就确保了我们是在获取这个bean的时候调用的
+		 *
+		 * 需要说明的是在初始化时候调用一般都是返回null
+		 *
+		 *
+		 * lazy
+		 */
 		Object sharedInstance = getSingleton(beanName);
+		///spring实例化的时候先去拿一遍要是拿不到再去实例化
 		if (sharedInstance != null && args == null) {
+			// 这里的代码是对于日志的记录，方便我们以后阅读应该注释，不影响spring功能
 			if (logger.isTraceEnabled()) {
 				if (isSingletonCurrentlyInCreation(beanName)) {
 					logger.trace("Returning eagerly cached instance of singleton bean '" + beanName +
@@ -258,17 +287,28 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					logger.trace("Returning cached instance of singleton bean '" + beanName + "'");
 				}
 			}
+			/**
+			 * 如果 sharedInstance 是普通的单例 bean，下面的方法会直接返回。但如果
+			 * sharedInstance 是 FactoryBean 类型的，则需调用 getObject 工厂方法获取真正的
+			 * bean 实例。如果用户想获取 FactoryBean 本身，这里也不会做特别的处理，直接返回
+			 * 即可。毕竟 FactoryBean 的实现类本身也是一种 bean，只不过具有一点特殊的功能而已。
+			 */
 			bean = getObjectForBeanInstance(sharedInstance, name, beanName, null);
 		}
 
 		else {
 			// Fail if we're already creating this bean instance:
 			// We're assumably within a circular reference.
+			/**
+			 * 原型
+			 * 如果是原型不应该在初始化的时候创建
+			 */
 			if (isPrototypeCurrentlyInCreation(beanName)) {
 				throw new BeanCurrentlyInCreationException(beanName);
 			}
 
 			// Check if bean definition exists in this factory.
+			///需要自行对spring改造，默认为空
 			BeanFactory parentBeanFactory = getParentBeanFactory();
 			if (parentBeanFactory != null && !containsBeanDefinition(beanName)) {
 				// Not found -> check parent.
@@ -291,6 +331,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			}
 
 			if (!typeCheckOnly) {
+				// 添加到alreadyCreated set集合当中，表示他已经创建过一场
 				markBeanAsCreated(beanName);
 			}
 
@@ -321,6 +362,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				if (mbd.isSingleton()) {
 					sharedInstance = getSingleton(beanName, () -> {
 						try {
+							///生成singletonFactory
 							return createBean(beanName, mbd, args);
 						}
 						catch (BeansException ex) {

@@ -26,7 +26,7 @@ public class Test {
 	public static void main(String[] args) {
 		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
 		context.addBeanFactoryPostProcessor(new TestBeanFactoryPostProcessor());
-		context.register(AppConfig.class, TestConfig.class);
+		context.register(AppConfig.class);
 		context.refresh();
 		Dao dao1 = (TestDao) context.getBean("testDao");
 		dao1.test();

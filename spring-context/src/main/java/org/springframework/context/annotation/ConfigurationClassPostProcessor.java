@@ -371,7 +371,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			 * configClasses当中主要包含的是importSelector
 			 * 因为ImportBeanDefinitionRegistrar在扫描出来的时候已经被添加到一个list当中去了
 			 */
-			// bd 到 map 除却普通
+			// bd 到 map 除却普通类（@Component）
 			///此时才完成bd的注册: 所有的bd放到map当中
 			this.reader.loadBeanDefinitions(configClasses);
 			alreadyParsed.addAll(configClasses);
