@@ -228,6 +228,7 @@ class ConfigurationClassBeanDefinitionReader {
 			else {
 				beanDef.setBeanClassName(configClass.getMetadata().getClassName());
 			}
+			///注意如果是静态的则设置了Factory-Method
 			beanDef.setUniqueFactoryMethodName(methodName);
 		}
 		else {

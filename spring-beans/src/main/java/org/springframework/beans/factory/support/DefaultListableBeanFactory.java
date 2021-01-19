@@ -876,7 +876,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		// 触发所有非延迟加载单例beans的初始化，主要步骤为调用getBean
 		for (String beanName : beanNames) {
 			// 从map当中把beanDefinition拿出来，然后合并父BeanDefinition
-			///相当重要
+			///检查是否有父的BeanDefinition,只有在xml中配置才会有这个问题：配置了两个类，而其中一个是另外一个的子类
 			RootBeanDefinition bd = getMergedLocalBeanDefinition(beanName);
 			///不是抽象的，是单例的且不是延迟加载的在这时候去实例化
 			if (!bd.isAbstract() && bd.isSingleton() && !bd.isLazyInit()) {
@@ -902,6 +902,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 					}
 				}
 				else {
+					///调用该方法之前singleObjects中还没有对象，spring最初自身的bean也还没初始化好
 					getBean(beanName);
 				}
 			}

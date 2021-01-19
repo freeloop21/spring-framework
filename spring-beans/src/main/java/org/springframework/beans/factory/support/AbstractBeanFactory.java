@@ -257,7 +257,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 		// Eagerly check singleton cache for manually registered singletons.
 		/**
-		 * 这个方法在初始化的时候会调用，在getBean的时候也会调用
+		 * 这个方法在初始化的时候(讲道理初始化的时候该bean肯定不存在)会调用，在getBean的时候也会调用
 		 * 为什么需要这么做呢？
 		 * 也就是说spring在初始化的时候先获取这个对象
 		 * 判断这个对象是否被实例化好了(普通情况下绝对为空====有一种情况可能不为空)
@@ -274,6 +274,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		 *
 		 * lazy
 		 */
+		///可能是第二次初始化的时候，对于lazy懒加载的bean就有必要去判断;不然在首次初始化时普通的bean实例在这个时候肯定不存在
 		Object sharedInstance = getSingleton(beanName);
 		///spring实例化的时候先去拿一遍要是拿不到再去实例化
 		if (sharedInstance != null && args == null) {
@@ -308,7 +309,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			}
 
 			// Check if bean definition exists in this factory.
-			///需要自行对spring改造，默认为空
+			///只有自己在spring中配置ParentBeanFactory，默认为空
 			BeanFactory parentBeanFactory = getParentBeanFactory();
 			if (parentBeanFactory != null && !containsBeanDefinition(beanName)) {
 				// Not found -> check parent.
@@ -331,7 +332,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			}
 
 			if (!typeCheckOnly) {
-				// 添加到alreadyCreated set集合当中，表示他已经创建过一场
+				// 添加到alreadyCreated set集合当中，表示他已经创建过一次,以此防止重复创建
 				markBeanAsCreated(beanName);
 			}
 
@@ -360,9 +361,10 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 				// Create bean instance.
 				if (mbd.isSingleton()) {
+					///与上面的getSingleton方法是不一样的,上面的主要是尝试从beanFactory中getBean，而这个是为了创建一个bean
 					sharedInstance = getSingleton(beanName, () -> {
 						try {
-							///生成singletonFactory
+							///此时的createBean中才开始创建bean对象(先创建原生对象，然后生成代理对象)
 							return createBean(beanName, mbd, args);
 						}
 						catch (BeansException ex) {
