@@ -273,7 +273,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * <p>By default, only the BeanFactoryAware interface is ignored.
 	 * For further types to ignore, invoke this method for each type.
 	 * @see org.springframework.beans.factory.BeanFactoryAware
-	 * @see org.springframework.context.ApplicationContextAware
+	 * see org.springframework.context.ApplicationContextAware
 	 */
 	public void ignoreDependencyInterface(Class<?> ifc) {
 		this.ignoredDependencyInterfaces.add(ifc);
@@ -570,6 +570,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			 */
 			instanceWrapper = createBeanInstance(beanName, mbd, args);
 		}
+		///此时已经将bean实例化，且将其用BeanWrapper封装
 		///拿到原生对象
 		///在接下去的代码会把这个原生对象变为代理对象
 		Object bean = instanceWrapper.getWrappedInstance();
@@ -1178,6 +1179,12 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * @see #autowireConstructor
 	 * @see #instantiateBean
 	 */
+	/**
+	 * 三种情况
+	 * 1. 有特殊构造方法：autowireConstructor
+	 * 2. FactoryMethod：instantiateUsingFactoryMethod
+	 * 3. 无特殊构造方法：instantiateBean
+	 */
 	protected BeanWrapper createBeanInstance(String beanName, RootBeanDefinition mbd, @Nullable Object[] args) {
 		// Make sure bean class is actually resolved at this point.
 		Class<?> beanClass = resolveBeanClass(mbd, beanName);
@@ -1198,6 +1205,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		 * 这种构建 bean 的方式可以自己写个demo去试试
 		 * 源码就不做深入分析了，有兴趣的同学可以和我私下讨论
 		 */
+		///情况2. FactoryMethod：instantiateUsingFactoryMethod
 		if (mbd.getFactoryMethodName() != null) {
 			return instantiateUsingFactoryMethod(beanName, mbd, args);
 		}
@@ -1206,7 +1214,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		/**
 		 * 从spring的原始注释可以知道这个是一个Shortcut，什么意思呢？
 		 * 当多次构建同一个 bean 时，可以使用这个Shortcut，
-		 * 也就是说不在需要次推断应该使用哪种方式构造bean
+		 * 也就是说不再需要推断应该使用哪种方式构造bean
 		 *  比如在多次构建同一个prototype类型的 bean 时，就可以走此处的shortcut
 		 * 这里的 resolved 和 mbd.constructorArgumentsResolved 将会在 bean 第一次实例
 		 * 化的过程中被设置，后面来证明
@@ -1225,6 +1233,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		if (resolved) {
 			if (autowireNecessary) {
 				// 通过构造方法自动装配的方式构造 bean 对象
+				///构造方法只能是一个，如果新建了多个构造方法则spring的逻辑默认为空
 				return autowireConstructor(beanName, mbd, null, null);
 			}
 			else {
@@ -1235,6 +1244,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		// Candidate constructors for autowiring?
 		// 由后置处理器决定返回哪些构造方法
+		///判断使用哪一个构造方法，spring有自己的一套逻辑算法，很复杂（举个例子，如果有多个构造方法,spring，这里可能返回的是null）
+		///没有意义，暂时不用过分去深究
 		Constructor<?>[] ctors = determineConstructorsFromBeanPostProcessors(beanClass, beanName);
 		///自动装配模型和自动装配技术,两者概念不一样
 		/**
@@ -1245,6 +1256,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		 */
 		if (ctors != null || mbd.getResolvedAutowireMode() == AUTOWIRE_CONSTRUCTOR ||
 				mbd.hasConstructorArgumentValues() || !ObjectUtils.isEmpty(args)) {
+			///情况1. 有特殊构造方法：autowireConstructor
 			return autowireConstructor(beanName, mbd, ctors, args);
 		}
 
@@ -1256,6 +1268,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		// No special handling: simply use no-arg constructor.
 		// bean生成策略: 使用默认的无参构造方法进行初始化
+		///情况3. 无特殊构造方法：instantiateBean
 		return instantiateBean(beanName, mbd);
 	}
 
@@ -1444,6 +1457,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		PropertyValues pvs = (mbd.hasPropertyValues() ? mbd.getPropertyValues() : null);
 		int resolvedAutowireMode = mbd.getResolvedAutowireMode();
+		///spring默认的注入模式是AUTOWIRE_NO=0
 		if (resolvedAutowireMode == AUTOWIRE_BY_NAME || resolvedAutowireMode == AUTOWIRE_BY_TYPE) {
 			MutablePropertyValues newPvs = new MutablePropertyValues(pvs);
 			// Add property values based on autowire by name if applicable.
@@ -1465,6 +1479,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			if (pvs == null) {
 				pvs = mbd.getPropertyValues();
 			}
+			///用后置处理器来注入属性的值(主要是AutowiredAnnotationBeanPostProcessor)
 			for (BeanPostProcessor bp : getBeanPostProcessors()) {
 				if (bp instanceof InstantiationAwareBeanPostProcessor) {
 					InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;

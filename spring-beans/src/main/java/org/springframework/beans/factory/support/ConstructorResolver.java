@@ -131,7 +131,9 @@ class ConstructorResolver {
 		BeanWrapperImpl bw = new BeanWrapperImpl();
 		this.beanFactory.initBeanWrapper(bw);
 
+		///代表要用哪个构造方法进行实例 化
 		Constructor<?> constructorToUse = null;
+		///代表这个构造方法需要哪个参数
 		ArgumentsHolder argsHolderToUse = null;
 		Object[] argsToUse = null;
 
@@ -145,7 +147,7 @@ class ConstructorResolver {
 		else {
 			Object[] argsToResolve = null;
 			synchronized (mbd.constructorArgumentLock) {
-				// 获取已解析的构造方法
+				// 获取已解析的构造方法(判断BeanDefinition中)
 				// 一般不会有，因为构造方法一般会提供一个
 				// 除非有多个。那么才会存在已经解析完成的构造方法
 				constructorToUse = (Constructor<?>) mbd.resolvedConstructorOrFactoryMethod;
@@ -194,7 +196,6 @@ class ConstructorResolver {
 			// Need to resolve the constructor.
 			// 如果没有已经解析的构造方法
 			// 则需要去解析构造方法
-			// Need to resolve the constructor.
 			// 判断构造方法是否为空，判断是否根据构造方法自动注入
 			boolean autowiring = (chosenCtors != null ||
 					mbd.getResolvedAutowireMode() == AutowireCapableBeanFactory.AUTOWIRE_CONSTRUCTOR);
@@ -202,9 +203,10 @@ class ConstructorResolver {
 
 			// 定义了最小参数个数
 			// 如果你给构造方法的参数列表给定了具体的值
-			// 那么这些值得个数就是构造方法参数的个数
+			// 那么这些值的个数就是构造方法参数的个数
 			int minNrOfArgs;
 			// mbd.getConstructorArgumentValues().addGenericArgumentValue("com.index.dao");
+			///explicitArgs是调用方法的时候传进来的参数
 			if (explicitArgs != null) {
 				minNrOfArgs = explicitArgs.length;
 			}
@@ -221,7 +223,7 @@ class ConstructorResolver {
 				 *         <constructor-arg index="2" value="str2"/>
 				 *     </bean>
 				 *
-				 *     在通过spring内部给了一个值得情况那么表示你的构造方法的最小参数个数一定
+				 *     在通过spring内部给了一个值的情况下那么表示你的构造方法的最小参数个数一定
 				 *
 				 * minNrOfArgs = 3
 				 */
@@ -240,9 +242,12 @@ class ConstructorResolver {
 			 * 5. protected Luban(Integer i, Object o1, Object o2)
 			 * 6. protected Luban(Integer i, Object o1)
 			 */
+			///spring给构造方法排序的结果就是如上面注释一样
 			AutowireUtils.sortConstructors(candidates);
 			// 定义了一个差异变量，这个变量很有分量，后面有注释
+			///该参数非常重要
 			int minTypeDiffWeight = Integer.MAX_VALUE;
+			///表示不由歧义的构造方法
 			Set<Constructor<?>> ambiguousConstructors = null;
 			LinkedList<UnsatisfiedDependencyException> causes = null;
 
@@ -252,15 +257,16 @@ class ConstructorResolver {
 
 				/**
 				 * 这个判断别看只有一行代码理解起来很费劲
-				 * 首先constructorToUse != null这个很好理解，e
+				 * 首先constructorToUse != null这个很好理解
 				 * 前面已经说过首先constructorToUse主要是用来装已经解析过了并且在使用的构造方法
 				 * 只有在他等于空的情况下，才有继续的意义，因为下面如果解析到了一个符合的构造方法
 				 * 就会赋值给这个变量（下面注释有写）。故而如果这个变量不等于null就不需要再进行解析了，说明spring已经
 				 * 找到一个合适的构造方法，直接使用便可以
+				 *
 				 * argsToUse.length > paramTypes.length这个代码就相当复杂了
 				 * 首先假设 argsToUse = [1,"luban"，obj]
 				 * 那么回去匹配到上面的构造方法的1和5
-				 * 由于构造方法1有更高的访问权限，所有选择1，尽管5看起来更加匹配
+				 * 由于构造方法1有更高的访问权限，所以选择1，尽管5看起来更加匹配
 				 * 但是我们看2,直接参数个数就不对所以直接忽略
 				 */
 				if (constructorToUse != null && argsToUse != null && argsToUse.length > parameterCount) {
@@ -327,7 +333,7 @@ class ConstructorResolver {
 				/**
 				 * typeDiffWeight 差异量，何谓差异量呢？
 				 * argsHolder.arguments和paramTypes之间的差异
-				 * 每个参数值得类型与构造方法参数列表的类型直接的差异
+				 * 每个参数值的类型与构造方法参数列表的类型直接的差异
 				 * 通过这个差异量来衡量或者确定一个合适的构造方法
 				 *
 				 * 值得注意的是constructorToUse=candidate
@@ -341,7 +347,7 @@ class ConstructorResolver {
 				 * spring迷茫了怎么办？
 				 * ambiguousConstructors.add(candidate);
 				 * 顾名思义。。。。
-				 * ambiguousConstructors=null 非常重要？
+				 * ambiguousConstructors=null 非常重要
 				 * 为什么重要，因为需要清空
 				 * 这也解释了为什么他找到两个符合要求的方法不直接抛异常的原因
 				 * 如果这个ambiguousConstructors一直存在，spring会在循环外面去exception

@@ -7,6 +7,7 @@ import com.frame.config.TestConfig;
 import com.frame.dao.Dao;
 import com.frame.dao.Dao2;
 import com.frame.dao.TestDao;
+import com.frame.dao2.IndexModel;
 import com.frame.dao2.IndexService;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
@@ -47,5 +48,7 @@ public class Test {
 		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(Config.class);
 		IndexService indexService = (IndexService) context.getBean("indexService");
 		indexService.index();
+		IndexModel indexModel = (IndexModel) context.getBean("indexModel");
+		System.out.println(indexModel.getName());
 	}
 }

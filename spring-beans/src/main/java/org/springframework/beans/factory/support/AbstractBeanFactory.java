@@ -275,6 +275,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		 * lazy
 		 */
 		///可能是第二次初始化的时候，对于lazy懒加载的bean就有必要去判断;不然在首次初始化时普通的bean实例在这个时候肯定不存在
+		///两个getSingleton方法很重要
 		Object sharedInstance = getSingleton(beanName);
 		///spring实例化的时候先去拿一遍要是拿不到再去实例化
 		if (sharedInstance != null && args == null) {
@@ -362,6 +363,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				// Create bean instance.
 				if (mbd.isSingleton()) {
 					///与上面的getSingleton方法是不一样的,上面的主要是尝试从beanFactory中getBean，而这个是为了创建一个bean
+					///两个getSingleton方法很重要
 					sharedInstance = getSingleton(beanName, () -> {
 						try {
 							///此时的createBean中才开始创建bean对象(先创建原生对象，然后生成代理对象)
