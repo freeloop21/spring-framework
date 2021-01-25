@@ -169,6 +169,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	@Override
 	@Nullable
 	public Object getSingleton(String beanName) {
+		///allowEarlyReference=true: 允许去缓存，暴露它
 		return getSingleton(beanName, true);
 	}
 
@@ -185,6 +186,12 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 		// 从map中获取bean如果不为空直接返回，不再进行初始化工作
 		// 讲道理一个程序员提供的对象这里一般都是为空的
 		Object singletonObject = this.singletonObjects.get(beanName);
+		///isSingletonCurrentlyInCreation(beanName): 第一遍实例化的时候肯定是false，第二次在属性填充时（autowired）为true
+		/**
+		 * 整体流程：
+		 * 1.对象在实例化的过程中第一次会执行getBean#doCreateBean(在一开始会先放入singletonsCurrentlyInCreation集合中表示正在创建)调用构造方法实例化对象(在创建完毕后放入singletonFactories集合中),但此时没有填充属性
+		 * 然后在填充属性的时候（populateBean）时又调用了getBean把该实例拿出来，但是此时还没有设置属性,把它拿出来之后放到earlySingletonObjects集合中,同时从singletonFactories集合中移除
+		*/
 		if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) {
 			synchronized (this.singletonObjects) {
 				singletonObject = this.earlySingletonObjects.get(beanName);

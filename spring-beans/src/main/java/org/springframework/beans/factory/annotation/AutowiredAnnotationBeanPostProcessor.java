@@ -638,11 +638,14 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 				Assert.state(beanFactory != null, "No BeanFactory available");
 				TypeConverter typeConverter = beanFactory.getTypeConverter();
 				try {
+					///转换依赖
+					///本质上就是从工厂中去拿
 					value = beanFactory.resolveDependency(desc, beanName, autowiredBeanNames, typeConverter);
 				}
 				catch (BeansException ex) {
 					throw new UnsatisfiedDependencyException(null, beanName, new InjectionPoint(field), ex);
 				}
+				///当把值找出来之后并不是立马set，还会判断类型
 				synchronized (this) {
 					if (!this.cached) {
 						if (value != null || this.required) {

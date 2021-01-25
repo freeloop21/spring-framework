@@ -275,7 +275,8 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		 * lazy
 		 */
 		///可能是第二次初始化的时候，对于lazy懒加载的bean就有必要去判断;不然在首次初始化时普通的bean实例在这个时候肯定不存在
-		///两个getSingleton方法很重要
+		///两个getSingleton方法很重要(循环依赖)
+		///在最开始实例化的时候调用了一次,当要去完成属性填充的时候又调用了一次
 		Object sharedInstance = getSingleton(beanName);
 		///spring实例化的时候先去拿一遍要是拿不到再去实例化
 		if (sharedInstance != null && args == null) {
